@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ninja Pizza - Inventory Management System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        :root {
+            --primary: #ff4500;
+            --primary-dark: #cc3700;
+            --secondary: #333;
+            --light: #f8f9fa;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ffc107;
+            --dark: #212529;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f4f4f4;
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: var(--secondary);
+            color: white;
+            padding: 20px 0;
+            transition: all 0.3s;
+        }
+        
+        .logo {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo h1 {
+            font-size: 24px;
+            margin: 0;
+            color: var(--primary);
+        }
+        
+        .logo span {
+            font-size: 14px;
+            color: var(--light);
+        }
+        
+        .nav-items {
+            list-style: none;
+        }
+        
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .nav-item i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(255, 69, 0, 0.1);
+            color: var(--primary);
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            background-color: var(--light);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .header h2 {
+            color: var(--secondary);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info .notification {
+            margin-right: 20px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .notification .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background-color: var(--danger);
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-info .user {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        /* Dashboard Styles */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .stat-card {
+            display: flex;
+            align-items: center;
+        }
+        
+        .stat-icon {
+            background-color: rgba(255, 69, 0, 0.1);
+            color: var(--primary);
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+        }
+        
+        .stat-info h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .stat-info h2 {
+            font-size: 24px;
+            color: var(--secondary);
+        }
+        
+        .stat-info p {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* Chart Styles */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-header h3 {
+            color: var(--secondary);
+        }
+        
+        .chart-header select {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            color: #666;
+        }
+        
+        /* Table Styles */
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .inventory-table th, .inventory-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .inventory-table th {
+            background-color: #f8f8f8;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .inventory-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .low {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--danger);
+        }
+        
+        .medium {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--warning);
+        }
+        
+        .good {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--success);
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        /* Form Styles */
+        .form-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 60%;
+            max-width: 500px;
+            animation: modalopen 0.3s;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h3 {
+            color: var(--secondary);
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: var(--dark);
+        }
+        
+        @keyframes modalopen {
+            from {opacity: 0; transform: translateY(-50px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+        
+        /* Order Section */
+        .order-section {
+            display: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: 10px 0;
+            }
+            
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 90%;
+            }
+        }
+        
+        /* Delivery Tracking */
+        .delivery-status {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            position: relative;
+        }
+        
+        .delivery-status:before {
+            content: '';
+            position: absolute;
+            top: 25px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #ddd;
+            z-index: 1;
+        }
+        
+        .status-step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .status-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            border: 2px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+        }
+        
+        .completed .status-icon {
+            background-color: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+        
+        .in-progress .status-icon {
+            background-color: var(--warning);
+            border-color: var(--warning);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h1>Ninja Pizza</h1>
+                <span>Inventory System</span>
+            </div>
+            
+            <ul class="nav-items">
+                <li class="nav-item active" onclick="showSection('dashboard-section')">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </li>
+                <li class="nav-item" onclick="showSection('inventory-section')">
+                    <i class="fas fa-boxes"></i> Inventory
+                </li>
+                <li class="nav-item" onclick="showSection('order-section')">
+                    <i class="fas fa-shopping-cart"></i> Orders
+                </li>
+                <li class="nav-item" onclick="showSection('delivery-section')">
+                    <i class="fas fa-truck"></i> Delivery Tracking
+                </li>
+                <li class="nav-item" onclick="showSection('settings-section')">
+                    <i class="fas fa-cog"></i> Settings
+                </li>
+                <li class="nav-item" onclick="redirectToMessenger()">
+                    <i class="fab fa-facebook-messenger"></i> Place Order
+                </li>
+            </ul>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h2>Ninja Pizza Management System</h2>
+                <div class="user-info">
+                    <div class="notification">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notif-badge">3</span>
+                    </div>
+                    <div class="user">
+                        <img src="/api/placeholder/40/40" alt="User">
+                        <span>Admin User</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section-content">
+                <div class="dashboard">
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-pizza-slice"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Total Orders</h3>
+                            <h2>257</h2>
+                            <p>+12% from last week</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Active Deliveries</h3>
+                            <h2>24</h2>
+                            <p>-3% from yesterday</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Low Stock Items</h3>
+                            <h2>6</h2>
+                            <p>Critical attention needed</p>
+                        </div>
+                    </div>
+                    
+                    <div class="card stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Revenue Today</h3>
+                            <h2>$3,275</h2>
+                            <p>+18% from yesterday</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Ingredient Usage</h3>
+                            <select id="chart-timeframe">
+                                <option value="daily">Daily</option>
+                                <option value="weekly" selected>Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <canvas id="ingredientChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Orders Overview</h3>
+                            <select id="order-timeframe">
+                                <option value="daily">Daily</option>
+                                <option value="weekly" selected>Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                        <canvas id="orderChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="chart-header">
+                        <h3>Low Stock Ingredients</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openModal('restockModal')">Restock Now</button>
+                    </div>
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Ingredient</th>
+                                <th>Current Stock</th>
+                                <th>Reorder Level</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mozzarella Cheese</td>
+                                <td>5 kg</td>
+                                <td>15 kg</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="openModal('restockModal')">Restock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pepperoni</td>
+                                <td>8 kg</td>
+                                <td>12 kg</td>
+                                <td><span class="status low">Low</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="openModal('restockModal')">Restock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pizza Sauce</td>
+                                <td>7 L</td>
+                                <td>20 L</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="openModal('restockModal')">Restock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Green Peppers</td>
+                                <td>4 kg</td>
+                                <td>10 kg</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="openModal('restockModal')">Restock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pizza Dough</td>
+                                <td>10 kg</td>
+                                <td>20 kg</td>
+                                <td><span class="status medium">Medium</span></td>
+                                <td>
+                                    <button class="btn btn-warning btn-sm" onclick="openModal('restockModal')">Restock</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Black Olives</td>
+                                <td>3 kg</td>
+                                <td>8 kg</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td>
+                                    <button class="btn btn-danger btn-sm" onclick="openModal('restockModal')">Restock</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Inventory Section -->
+            <div id="inventory-section" class="section-content" style="display: none;">
+                <div class="header">
+                    <h3>Inventory Management</h3>
+                    <div>
+                        <button class="btn btn-primary" onclick="openModal('addInventoryModal')">Add New Item</button>
+                        <button class="btn btn-secondary" onclick="openModal('exportModal')">Export Data</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Ingredient</th>
+                                <th>Category</th>
+                                <th>Current Stock</th>
+                                <th>Reorder Level</th>
+                                <th>Unit Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mozzarella Cheese</td>
+                                <td>Dairy</td>
+                                <td>5 kg</td>
+                                <td>15 kg</td>
+                                <td>$9.50</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pepperoni</td>
+                                <td>Meat</td>
+                                <td>8 kg</td>
+                                <td>12 kg</td>
+                                <td>$12.75</td>
+                                <td><span class="status low">Low</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pizza Sauce</td>
+                                <td>Sauce</td>
+                                <td>7 L</td>
+                                <td>20 L</td>
+                                <td>$5.25</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Green Peppers</td>
+                                <td>Vegetable</td>
+                                <td>4 kg</td>
+                                <td>10 kg</td>
+                                <td>$3.50</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Pizza Dough</td>
+                                <td>Base</td>
+                                <td>10 kg</td>
+                                <td>20 kg</td>
+                                <td>$4.20</td>
+                                <td><span class="status medium">Medium</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Black Olives</td>
+                                <td>Toppings</td>
+                                <td>3 kg</td>
+                                <td>8 kg</td>
+                                <td>$6.70</td>
+                                <td><span class="status low">Critical</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Mushrooms</td>
+                                <td>Vegetable</td>
+                                <td>12 kg</td>
+                                <td>10 kg</td>
+                                <td>$4.90</td>
+                                <td><span class="status good">Good</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Basil</td>
+                                <td>Herb</td>
+                                <td>2 kg</td>
+                                <td>2 kg</td>
+                                <td>$8.30</td>
+                                <td><span class="status medium">Medium</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Ham</td>
+                                <td>Meat</td>
+                                <td>15 kg</td>
+                                <td>10 kg</td>
+                                <td>$10.75</td>
+                                <td><span class="status good">Good</span></td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('editInventoryModal')">Edit</button>
+                                    <button class="btn btn-sm btn-danger" onclick="confirmDelete()">Delete</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Order Section -->
+            <div id="order-section" class="section-content" style="display: none;">
+                <div class="header">
+                    <h3>Current Orders</h3>
+                    <div>
+                        <button class="btn btn-primary" onclick="redirectToMessenger()">New Order</button>
+                        <button class="btn btn-secondary" onclick="openModal('orderFilterModal')">Filter</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#ORD-2025</td>
+                                <td>John Smith</td>
+                                <td>2x Pepperoni, 1x Garlic Bread</td>
+                                <td>$36.50</td>
+                                <td><span class="status medium">Preparing</span></td>
+                                <td>10 min ago</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('orderDetailsModal')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus('ORD-2025', 'Delivering')">Update</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2024</td>
+                                <td>Emma Johnson</td>
+                                <td>1x Margherita, 1x Soda</td>
+                                <td>$19.25</td>
+                                <td><span class="status low">Delivering</span></td>
+                                <td>25 min ago</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('orderDetailsModal')">View</button>
+                                    <button class="btn btn-sm btn-success" onclick="updateOrderStatus('ORD-2024', 'Delivered')">Update</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2023</td>
+                                <td>Michael Brown</td>
+                                <td>2x Hawaiian, 1x Chicken Wings</td>
+                                <td>$45.75</td>
+                                <td><span class="status good">Delivered</span></td>
+                                <td>45 min ago</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('orderDetailsModal')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2022</td>
+                                <td>Sarah Davis</td>
+                                <td>1x Supreme, 1x Garlic Bread, 2x Soda</td>
+                                <td>$32.50</td>
+                                <td><span class="status good">
+                                    <td><span class="status good">Delivered</span></td>
+                                <td>1 hour ago</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('orderDetailsModal')">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2021</td>
+                                <td>David Wilson</td>
+                                <td>1x Veggie, 1x Dessert Pizza</td>
+                                <td>$28.90</td>
+                                <td><span class="status good">Delivered</span></td>
+                                <td>1.5 hours ago</td>
+                                <td class="actions">
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('orderDetailsModal')">View</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Delivery Tracking Section -->
+            <div id="delivery-section" class="section-content" style="display: none;">
+                <div class="header">
+                    <h3>Delivery Tracking</h3>
+                    <div>
+                        <input type="text" placeholder="Search by Order ID" class="form-control" style="width: 200px; display: inline-block;">
+                        <button class="btn btn-primary">Search</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Address</th>
+                                <th>Driver</th>
+                                <th>Status</th>
+                                <th>Estimated Delivery</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>#ORD-2025</td>
+                                <td>John Smith</td>
+                                <td>123 Main St, Apt 4B</td>
+                                <td>Ryan K.</td>
+                                <td><span class="status medium">Preparing</span></td>
+                                <td>15 min</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('trackDeliveryModal')">Track</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>#ORD-2024</td>
+                                <td>Emma Johnson</td>
+                                <td>456 Oak Ave, Unit 7</td>
+                                <td>Mike P.</td>
+                                <td><span class="status low">Delivering</span></td>
+                                <td>8 min</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" onclick="openModal('trackDeliveryModal')">Track</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="card">
+                    <div class="chart-header">
+                        <h3>Delivery Details - #ORD-2024</h3>
+                    </div>
+                    <div class="delivery-status">
+                        <div class="status-step completed">
+                            <div class="status-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <p>Order Received</p>
+                            <small>3:15 PM</small>
+                        </div>
+                        <div class="status-step completed">
+                            <div class="status-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <p>Preparing</p>
+                            <small>3:20 PM</small>
+                        </div>
+                        <div class="status-step completed">
+                            <div class="status-icon">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <p>Ready for Pickup</p>
+                            <small>3:35 PM</small>
+                        </div>
+                        <div class="status-step in-progress">
+                            <div class="status-icon">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <p>On the Way</p>
+                            <small>3:40 PM</small>
+                        </div>
+                        <div class="status-step">
+                            <div class="status-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <p>Delivered</p>
+                            <small>Est. 3:48 PM</small>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <h4>Delivery Notes</h4>
+                        <p>Customer requested contactless delivery. Leave at door and ring doorbell.</p>
+                        
+                        <div style="margin-top: 20px;">
+                            <h4>Customer Details</h4>
+                            <p><strong>Name:</strong> Emma Johnson</p>
+                            <p><strong>Phone:</strong> (555) 123-4567</p>
+                            <p><strong>Address:</strong> 456 Oak Ave, Unit 7, Downtown</p>
+                            <p><strong>Special Instructions:</strong> Apartment building, use code #2468 for entry</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Settings Section -->
+            <div id="settings-section" class="section-content" style="display: none;">
+                <div class="header">
+                    <h3>System Settings</h3>
+                </div>
+                
+                <div class="card">
+                    <h4>Inventory Settings</h4>
+                    <div class="form-group">
+                        <label>Low Stock Threshold (%)</label>
+                        <input type="number" class="form-control" value="25" style="width: 200px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Critical Stock Threshold (%)</label>
+                        <input type="number" class="form-control" value="10" style="width: 200px;">
+                    </div>
+                    <div class="form-group">
+                        <label>Enable Low Stock Notifications</label>
+                        <input type="checkbox" checked>
+                    </div>
+                    <button class="btn btn-primary">Save Changes</button>
+                </div>
+                
+                <div class="card" style="margin-top: 20px;">
+                    <h4>User Management</h4>
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>admin</td>
+                                <td>Administrator</td>
+                                <td>Today, 2:45 PM</td>
+                                <td><span class="status good">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>manager</td>
+                                <td>Manager</td>
+                                <td>Yesterday, 5:30 PM</td>
+                                <td><span class="status good">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary">Edit</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>staff1</td>
+                                <td>Staff</td>
+                                <td>Today, 10:15 AM</td>
+                                <td><span class="status good">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary">Edit</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button class="btn btn-primary" style="margin-top: 15px;">Add New User</button>
+                </div>
+                
+                <div class="card" style="margin-top: 20px;">
+                    <h4>Backup & Restore</h4>
+                    <div class="form-group">
+                        <label>Automatic Backup</label>
+                        <select class="form-control" style="width: 200px;">
+                            <option>Daily</option>
+                            <option selected>Weekly</option>
+                            <option>Monthly</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary">Backup Now</button>
+                    <button class="btn btn-secondary">Restore from Backup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <!-- Restock Modal -->
+    <div id="restockModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Restock Ingredient</h3>
+                <span class="close" onclick="closeModal('restockModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Ingredient</label>
+                <input type="text" class="form-control" value="Mozzarella Cheese" readonly>
+            </div>
+            <div class="form-group">
+                <label>Current Stock</label>
+                <input type="text" class="form-control" value="5 kg" readonly>
+            </div>
+            <div class="form-group">
+                <label>Add Amount</label>
+                <input type="number" class="form-control" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label>Supplier</label>
+                <select class="form-control">
+                    <option>Dairy Delights Inc.</option>
+                    <option>Fresh Farms Supplies</option>
+                    <option>Gourmet Ingredients Co.</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Expected Delivery Date</label>
+                <input type="date" class="form-control">
+            </div>
+            <button class="btn btn-primary">Submit Order</button>
+            <button class="btn btn-secondary" onclick="closeModal('restockModal')">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Add Inventory Modal -->
+    <div id="addInventoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Ingredient</h3>
+                <span class="close" onclick="closeModal('addInventoryModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Ingredient Name</label>
+                <input type="text" class="form-control" placeholder="Enter name">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select class="form-control">
+                    <option>Dairy</option>
+                    <option>Meat</option>
+                    <option>Vegetable</option>
+                    <option>Sauce</option>
+                    <option>Base</option>
+                    <option>Toppings</option>
+                    <option>Herb</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Initial Stock</label>
+                <input type="number" class="form-control" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label>Unit</label>
+                <select class="form-control">
+                    <option>kg</option>
+                    <option>L</option>
+                    <option>pcs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reorder Level</label>
+                <input type="number" class="form-control" placeholder="Enter amount">
+            </div>
+            <div class="form-group">
+                <label>Unit Price ($)</label>
+                <input type="number" step="0.01" class="form-control" placeholder="Enter price">
+            </div>
+            <button class="btn btn-primary">Add Ingredient</button>
+            <button class="btn btn-secondary" onclick="closeModal('addInventoryModal')">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Edit Inventory Modal -->
+    <div id="editInventoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Ingredient</h3>
+                <span class="close" onclick="closeModal('editInventoryModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Ingredient Name</label>
+                <input type="text" class="form-control" value="Mozzarella Cheese">
+            </div>
+            <div class="form-group">
+                <label>Category</label>
+                <select class="form-control">
+                    <option selected>Dairy</option>
+                    <option>Meat</option>
+                    <option>Vegetable</option>
+                    <option>Sauce</option>
+                    <option>Base</option>
+                    <option>Toppings</option>
+                    <option>Herb</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Current Stock</label>
+                <input type="number" class="form-control" value="5">
+            </div>
+            <div class="form-group">
+                <label>Unit</label>
+                <select class="form-control">
+                    <option selected>kg</option>
+                    <option>L</option>
+                    <option>pcs</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Reorder Level</label>
+                <input type="number" class="form-control" value="15">
+            </div>
+            <div class="form-group">
+                <label>Unit Price ($)</label>
+                <input type="number" step="0.01" class="form-control" value="9.50">
+            </div>
+            <button class="btn btn-primary">Update Ingredient</button>
+            <button class="btn btn-secondary" onclick="closeModal('editInventoryModal')">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Export Modal -->
+    <div id="exportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Export Inventory Data</h3>
+                <span class="close" onclick="closeModal('exportModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Export Format</label>
+                <select class="form-control">
+                    <option>CSV</option>
+                    <option>Excel</option>
+                    <option>PDF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Data Range</label>
+                <select class="form-control">
+                    <option>All Data</option>
+                    <option>Current Month</option>
+                    <option>Last 30 Days</option>
+                    <option>Custom Range</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Include Categories</label>
+                <div>
+                    <input type="checkbox" checked> Dairy
+                    <input type="checkbox" checked> Meat
+                    <input type="checkbox" checked> Vegetable
+                    <input type="checkbox" checked> Sauce
+                    <input type="checkbox" checked> Base
+                    <input type="checkbox" checked> Toppings
+                    <input type="checkbox" checked> Herb
+                </div>
+            </div>
+            <button class="btn btn-primary">Export Data</button>
+            <button class="btn btn-secondary" onclick="closeModal('exportModal')">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- Order Details Modal -->
+    <div id="orderDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Order Details #ORD-2024</h3>
+                <span class="close" onclick="closeModal('orderDetailsModal')">&times;</span>
+            </div>
+            <div>
+                <h4>Customer Information</h4>
+                <p><strong>Name:</strong> Emma Johnson</p>
+                <p><strong>Phone:</strong> (555) 123-4567</p>
+                <p><strong>Address:</strong> 456 Oak Ave, Unit 7, Downtown</p>
+                <p><strong>Order Time:</strong> March 8, 2025 3:15 PM</p>
+            </div>
+            <div style="margin-top: 20px;">
+                <h4>Order Items</h4>
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Margherita Pizza (Medium)</td>
+                            <td>1</td>
+                            <td>$15.99</td>
+                            <td>$15.99</td>
+                        </tr>
+                        <tr>
+                            <td>Soda (Cola)</td>
+                            <td>1</td>
+                            <td>$2.50</td>
+                            <td>$2.50</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Subtotal:</strong></td>
+                            <td>$18.49</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Tax:</strong></td>
+                            <td>$0.76</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                            <td>$19.25</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 20px;">
+                <h4>Order Status</h4>
+                <select class="form-control">
+                    <option>Received</option>
+                    <option>Preparing</option>
+                    <option selected>Delivering</option>
+                    <option>Delivered</option>
+                </select>
+            </div>
+            <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+                <button class="btn btn-primary">Update Status</button>
+                <button class="btn btn-secondary" onclick="closeModal('orderDetailsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Track Delivery Modal -->
+    <div id="trackDeliveryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Track Delivery #ORD-2024</h3>
+                <span class="close" onclick="closeModal('trackDeliveryModal')">&times;</span>
+            </div>
+            <div style="height: 300px; background-color: #eee; margin-bottom: 20px; display: flex; justify-content: center; align-items: center;">
+                <p><i class="fas fa-map-marker-alt" style="font-size: 24px; color: var(--primary);"></i> Map View Placeholder</p>
+            </div>
+            <div>
+                <h4>Delivery Information</h4>
+                <p><strong>Driver:</strong> Mike P.</p>
+                <p><strong>Vehicle:</strong> Motorcycle #3</p>
+                <p><strong>Estimated Arrival:</strong> 8 minutes</p>
+                <p><strong>Status:</strong> On the way</p>
+            </div>
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary">Contact Driver</button>
+                <button class="btn btn-secondary" onclick="closeModal('trackDeliveryModal')">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Order Filter Modal -->
+    <div id="orderFilterModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Filter Orders</h3>
+                <span class="close" onclick="closeModal('orderFilterModal')">&times;</span>
+            </div>
+            <div class="form-group">
+                <label>Date Range</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="date" class="form-control">
+                    <span style="align-self: center;">to</span>
+                    <input type="date" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select class="form-control">
+                    <option>All</option>
+                    <option>Received</option>
+                    <option>Preparing</option>
+                    <option>Delivering</option>
+                    <option>Delivered</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Customer</label>
+                <input type="text" class="form-control" placeholder="Search by customer name">
+            </div>
+            <div class="form-group">
+                <label>Order Total</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="number" step="0.01" class="form-control" placeholder="Min">
+                    <span style="align-self: center;">to</span>
+                    <input type="number" step="0.01" class="form-control" placeholder="Max">
+                </div>
+            </div>
+            <button class="btn btn-primary">Apply Filters</button>
+            <button class="btn btn-secondary" onclick="closeModal('orderFilterModal')">Cancel</button>
+        </div>
+    </div>
+    
+    <!-- JavaScript -->
+    <script>
+        // Show selected section
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section-content').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).style.display = 'block';
+            
+            // Update active nav item
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Find the nav item that triggered this and make it active
+            document.querySelectorAll('.nav-item').forEach(item => {
+                if (item.getAttribute('onclick').includes(sectionId)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+        
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            document.querySelectorAll('.modal').forEach(modal => {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+        
+        // Function to update order status
+        function updateOrderStatus(orderId, status) {
+            alert(`Order ${orderId} status updated to ${status}`);
+            // In a real application, this would update the database
+        }
+        
+        // Function to confirm delete
+        function confirmDelete() {
+            if (confirm('Are you sure you want to delete this item?')) {
+                alert('Item deleted successfully');
+                // In a real application, this would remove the item
+            }
+        }
+        
+        // Function to redirect to messenger
+        function redirectToMessenger() {
+            window.open('https://m.me/ninjapizza', '_blank');
+        }
+        
+        // Initialize charts when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ingredient usage chart
+            const ingredientCtx = document.getElementById('ingredientChart').getContext('2d');
+            const ingredientChart = new Chart(ingredientCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Cheese', 'Sauce', 'Dough', 'Pepperoni', 'Mushrooms', 'Olives'],
+                    datasets: [{
+                        label: 'Weekly Usage (kg)',
+                        data: [45, 32, 68, 22, 15, 8],
+                        backgroundColor: 'rgba(255, 69, 0, 0.7)',
+                        borderColor: 'rgba(255, 69, 0, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // Orders overview chart
+            const orderCtx = document.getElementById('orderChart').getContext('2d');
+            const orderChart = new Chart(orderCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Orders',
+                        data: [25, 32, 28, 35, 42, 55, 40],
+                        fill: false,
+                        borderColor: 'rgba(255, 69, 0, 1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
